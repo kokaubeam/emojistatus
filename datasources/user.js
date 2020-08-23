@@ -28,7 +28,6 @@ const userBuilder = build({
   fields: {
     id: fake((f) => f.random.uuid()),
     displayName: fake((f) => f.name.findName()),
-    status: perBuild(() => statusBuilder()),
   },
 });
 
@@ -62,12 +61,14 @@ for (let i = 0; i < userIds.length; i++) {
 }
 
 module.exports = class UserAPI extends DataSource {
-  constructor() {
-    super();
-  }
-
   initialize(config) {
     this.context = config.context;
+  }
+
+  getMe() {
+    const { currentUser } = this.context;
+
+    return this.getUser(currentUser.id);
   }
 
   getUser(id) {
@@ -100,7 +101,7 @@ module.exports = class UserAPI extends DataSource {
     return statuses[userId];
   }
 
-  getFriendsOfUser(userId) {
+  getUserFriends(userId) {
     if (!users[userId]) {
       throw new Error("User does not exist");
     }
@@ -110,21 +111,25 @@ module.exports = class UserAPI extends DataSource {
     );
   }
 
-  updateStatus(userId, emoji) {
-    if (!users[userId]) {
+  updateStatus(emoji) {
+    const { currentUser } = this.context;
+
+    if (!currentUser || !users[currentUser.id]) {
       throw new Error("User does not exist");
     }
 
-    statuses[userId] = {
+    statuses[currentUser.id] = {
       emoji,
       when: moment().toISOString(),
     };
 
-    return users[userId];
+    return this.getUser(currentUser.id);
   }
 
-  updateUser(userId, updates) {
-    if (!users[userId]) {
+  updateUser(updates) {
+    const { currentUser } = this.context;
+
+    if (!currentUser || !users[currentUser.id]) {
       throw new Error("User does not exist");
     }
 
@@ -133,39 +138,43 @@ module.exports = class UserAPI extends DataSource {
         throw new Error("Display name cannot be empty");
       }
 
-      users[userId].displayName = updates.displayName;
+      users[currentUser.id].displayName = updates.displayName;
     }
 
-    return users[userId];
+    return this.getUser(currentUser.id);
   }
 
-  friend(leftUserId, rightUserId) {
-    if (!users[leftUserId] || !users[rightUserId]) {
+  friend(userId) {
+    const { currentUser } = this.context;
+
+    if (!currentUser || !users[currentUser.id] || !users[userId]) {
       throw new Error("User does not exist");
     }
 
-    if (leftUserId === rightUserId) {
+    if (currentUser.id === userId) {
       throw new Error(`You're already your own best friend`);
     }
 
-    friendships[leftUserId].add(rightUserId);
-    friendships[rightUserId].add(leftUserId);
+    friendships[currentUser.id].add(userId);
+    friendships[userId].add(currentUser.id);
 
-    return [users[leftUserId], users[rightUserId]];
+    return [this.getUser(currentUser.id), this.getUser(userId)];
   }
 
-  unfriend(leftUserId, rightUserId) {
-    if (!users[leftUserId] || !users[rightUserId]) {
+  unfriend(userId) {
+    const { currentUser } = this.context;
+
+    if (!currentUser || !users[currentUser.id] || !users[userId]) {
       throw new Error("User does not exist");
     }
 
-    if (leftUserId === rightUserId) {
-      throw new Error(`You're already your own best friend`);
+    if (currentUser.id === userId) {
+      throw new Error(`Afraid you're stuck with yourself`);
     }
 
-    friendships[leftUserId].delete(rightUserId);
-    friendships[rightUserId].delete(leftUserId);
+    friendships[currentUser.id].delete(userId);
+    friendships[userId].delete(currentUser.id);
 
-    return [users[leftUserId], users[rightUserId]];
+    return [this.getUser(currentUser.id), this.getUser(userId)];
   }
 };

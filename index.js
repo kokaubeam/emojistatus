@@ -8,7 +8,9 @@ const server = new ApolloServer({
   resolvers,
   dataSources,
   context: () => ({
-    userId: dataSources().userAPI.getUsers()[0].id,
+    currentUser: {
+      id: dataSources().userAPI.getUsers()[0].id,
+    },
   }),
 });
 
