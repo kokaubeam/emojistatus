@@ -2,6 +2,9 @@ const { ApolloServer } = require("apollo-server");
 const typeDefs = require("./schema");
 const resolvers = require("./resolvers");
 const dataSources = require("./datasources");
+const seedMockData = require("./seed");
+
+seedMockData(dataSources);
 
 const server = new ApolloServer({
   typeDefs,
