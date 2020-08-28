@@ -1,0 +1,8 @@
+query ContentView {
+  me {
+	displayName
+	status {
+	  emoji
+	}
+  }
+}

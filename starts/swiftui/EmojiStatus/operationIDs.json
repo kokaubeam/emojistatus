@@ -1,0 +1,6 @@
+{
+  "6fb6702f2de051a4d54f8f07c050addbb03212545c967d4ba63777b7622b89b4": {
+    "name": "ContentView",
+    "source": "query ContentView {\n  me {\n    __typename\n    displayName\n    status {\n      __typename\n      emoji\n    }\n  }\n}"
+  }
+}
