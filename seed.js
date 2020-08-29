@@ -1,5 +1,4 @@
-const { build, fake, perBuild, oneOf } = require("@jackfranklin/test-data-bot");
-const moment = require("moment");
+const { build, fake, oneOf } = require("@jackfranklin/test-data-bot");
 
 const userBuilder = build({
   fields: {
